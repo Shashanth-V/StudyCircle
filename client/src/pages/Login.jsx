@@ -112,9 +112,6 @@ export default function Login() {
               Sign up
             </Link>
           </div>
-        </div>
       </div>
-    </div>
   );
 }
-

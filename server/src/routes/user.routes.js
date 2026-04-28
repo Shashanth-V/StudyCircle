@@ -7,7 +7,7 @@ import {
   changePasswordSchema,
   notificationPrefsSchema,
   privacySettingsSchema,
-} from '../../../shared/schemas.js';
+} from '../../../../shared/schemas.js';
 import {
   getMe,
   updateMe,

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { uploadFile } from '../middleware/upload.js';
 import { validateBody } from '../middleware/validate.js';
-import { sendMessageSchema } from '../../../shared/schemas.js';
+import { sendMessageSchema } from '../../../../shared/schemas.js';
 import {
   getChats,
   getMessages,
@@ -24,4 +24,3 @@ router.delete('/:chatId/messages/:msgId', deleteMessage);
 router.post('/:chatId/read', markMessagesRead);
 
 export default router;
-

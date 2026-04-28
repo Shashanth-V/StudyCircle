@@ -17,7 +17,7 @@ import {
   verifyEmailSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-} from '../../../shared/schemas.js';
+} from '../../../../shared/schemas.js';
 
 const router = Router();
 
