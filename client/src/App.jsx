@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { useAuthStore } from './stores/authStore';
@@ -34,6 +34,7 @@ import NotFound from './pages/NotFound';
 
 function App() {
   const initAuth = useAuthStore((s) => s.initAuth);
+  const token = useAuthStore((s) => s.token);
   const theme = useUiStore((s) => s.theme);
 
   useEffect(() => {
@@ -44,26 +45,29 @@ function App() {
   }, [initAuth, theme]);
 
   useEffect(() => {
-    const token = useAuthStore.getState().token;
-    if (token) connectSocket(token);
+    if (token) {
+      connectSocket(token);
+    } else {
+      disconnectSocket();
+    }
     return () => disconnectSocket();
-  }, []);
+  }, [token]);
 
   return (
-    <BrowserRouter>
+    <>
       <Toaster position="top-right" toastOptions={{ className: 'dark:bg-gray-800 dark:text-white' }} />
       <Routes>
-        <!-- Public routes -->
+        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <!-- Onboarding -->
+        {/* Onboarding */}
         <Route path="/onboarding/step1" element={<AuthGuard><OnboardingStep1 /></AuthGuard>} />
         <Route path="/onboarding/step2" element={<AuthGuard><OnboardingStep2 /></AuthGuard>} />
         <Route path="/onboarding/step3" element={<AuthGuard><OnboardingStep3 /></AuthGuard>} />
-        <!-- Protected routes -->
+        {/* Protected routes */}
         <Route element={<AuthGuard><Layout /></AuthGuard>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/explore" element={<Explore />} />
@@ -86,7 +90,7 @@ function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
 

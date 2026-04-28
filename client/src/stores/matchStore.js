@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { matchApi, userApi } from '../lib/api';
+import { useAuthStore } from './authStore';
 
 export const useMatchStore = create((set, get) => ({
   suggestions: [],
@@ -23,6 +24,7 @@ export const useMatchStore = create((set, get) => ({
   fetchMatches: async () => {
     set({ isLoading: true });
     try {
+      const userId = useAuthStore.getState().user?._id;
       const [acceptedRes, pendingRes] = await Promise.all([
         matchApi.getMatches('accepted'),
         matchApi.getMatches('pending'),
@@ -30,8 +32,8 @@ export const useMatchStore = create((set, get) => ({
       set({
         matches: acceptedRes.data,
         requests: {
-          sent: pendingRes.data.filter((m) => m.requester._id === get().userId),
-          received: pendingRes.data.filter((m) => m.receiver._id === get().userId),
+          sent: pendingRes.data.filter((m) => m.requester._id === userId),
+          received: pendingRes.data.filter((m) => m.receiver._id === userId),
         },
         isLoading: false,
       });

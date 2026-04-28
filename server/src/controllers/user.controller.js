@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { User } from '../models/User.js';
 import { Match } from '../models/Match.js';
 import { Session } from '../models/Session.js';
@@ -135,13 +136,13 @@ export const getMatchSuggestions = async (req, res, next) => {
     const suggestions = potentialUsers
       .map(u => {
         const score = calculateMatchScore(currentUser, u);
-        return { user: u, matchScore: score };
+        return { ...u.toObject(), matchScore: score };
       })
       .filter(s => s.matchScore > 0)
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, 50);
 
-    res.json({ suggestions });
+    res.json(suggestions);
   } catch (err) {
     next(err);
   }
@@ -254,7 +255,7 @@ export const searchUsers = async (req, res, next) => {
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 
-    res.json({ users, page: Number(page), limit: Number(limit) });
+    res.json(users);
   } catch (err) {
     next(err);
   }

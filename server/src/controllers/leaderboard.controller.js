@@ -18,15 +18,12 @@ export const getWeeklyLeaderboard = async (req, res, next) => {
 
     const total = await User.countDocuments({ isDeactivated: false });
 
-    res.json({
-      leaderboard: users.map((u, i) => ({
+    res.json(
+      users.map((u, i) => ({
         rank: (Number(page) - 1) * Number(limit) + i + 1,
         user: u,
-      })),
-      page: Number(page),
-      limit: Number(limit),
-      total,
-    });
+      }))
+    );
   } catch (err) {
     next(err);
   }

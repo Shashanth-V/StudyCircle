@@ -32,7 +32,7 @@ export const getSessions = async (req, res, next) => {
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 
-    res.json({ sessions, page: Number(page), limit: Number(limit) });
+    res.json(sessions);
   } catch (err) {
     next(err);
   }

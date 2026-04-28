@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { chatApi } from '../lib/api';
+import { useAuthStore } from './authStore';
 
 export const useChatStore = create((set, get) => ({
   chats: [],
@@ -24,9 +25,10 @@ export const useChatStore = create((set, get) => ({
       // Mark as read when opening chat
       chatApi.markRead(chat._id).catch(() => {});
       // Update unread count locally
+      const userId = useAuthStore.getState().user?._id;
       set((state) => ({
         chats: state.chats.map((c) =>
-          c._id === chat._id ? { ...c, unreadCount: { ...c.unreadCount, [state.userId]: 0 } } : c
+          c._id === chat._id ? { ...c, unreadCount: { ...c.unreadCount, [userId]: 0 } } : c
         ),
       }));
     }
@@ -75,12 +77,13 @@ export const useChatStore = create((set, get) => ({
     set((state) => {
       const isActive = state.activeChat?._id === message.chatId;
       const messages = isActive ? [...state.messages, message] : state.messages;
+      const userId = useAuthStore.getState().user?._id;
 
       return {
         messages,
         chats: state.chats.map((c) => {
           if (c._id.toString() === message.chatId.toString()) {
-            const currentUnread = c.unreadCount?.[state.userId] || 0;
+            const currentUnread = c.unreadCount?.[userId] || 0;
             return {
               ...c,
               lastMessage: {
@@ -92,7 +95,7 @@ export const useChatStore = create((set, get) => ({
               lastMessageAt: message.createdAt,
               unreadCount: {
                 ...c.unreadCount,
-                [state.userId]: isActive ? 0 : currentUnread + 1,
+                [userId]: isActive ? 0 : currentUnread + 1,
               },
             };
           }

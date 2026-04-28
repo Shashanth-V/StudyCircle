@@ -15,9 +15,7 @@ export const getNotifications = async (req, res, next) => {
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 
-    const unreadCount = await Notification.countDocuments({ userId: req.user._id, read: false });
-
-    res.json({ notifications, unreadCount, page: Number(page), limit: Number(limit) });
+    res.json(notifications);
   } catch (err) {
     next(err);
   }

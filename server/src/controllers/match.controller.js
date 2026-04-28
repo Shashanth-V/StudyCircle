@@ -19,7 +19,7 @@ export const getMatches = async (req, res, next) => {
       .populate('receiver', 'name profilePhoto isOnline lastActive')
       .sort({ createdAt: -1 });
 
-    res.json({ matches });
+    res.json(matches);
   } catch (err) {
     next(err);
   }

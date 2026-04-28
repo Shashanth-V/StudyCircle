@@ -26,17 +26,24 @@ export default function ChatRoom() {
 
   useEffect(() => {
     setIsLoading(true);
-    chatApi.getChats().then((res) => {
-      const chat = res.data.find((c) => c._id === chatId);
-      if (chat) {
-        setActiveChat(chat);
-        joinChat(chatId);
-      } else {
-        toast.error('Chat not found');
+    chatApi.getChats()
+      .then((res) => {
+        const chat = res.data.find((c) => c._id === chatId);
+        if (chat) {
+          setActiveChat(chat);
+          joinChat(chatId);
+        } else {
+          toast.error('Chat not found');
+          navigate('/chat');
+        }
+      })
+      .catch(() => {
+        toast.error('Failed to load chat');
         navigate('/chat');
-      }
-      setIsLoading(false);
-    });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
 
     return () => {
       leaveChat(chatId);

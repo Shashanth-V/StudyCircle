@@ -1,7 +1,6 @@
 import { Chat } from '../models/Chat.js';
 import { Message } from '../models/Message.js';
 import { Match } from '../models/Match.js';
-import { User } from '../models/User.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 /**
@@ -32,7 +31,7 @@ const getOrCreateChat = async (userA, userB) => {
 
     chat = await Chat.create({
       participants: [userA, userB],
-      unreadCount: new Map([[userA, 0], [userB, 0]]),
+      unreadCount: new Map([[userA.toString(), 0], [userB.toString(), 0]]),
     });
   }
 
@@ -50,15 +49,10 @@ export const getChats = async (req, res, next) => {
 
     const enriched = chats.map(chat => {
       const obj = chat.toObject();
-      const other = obj.participants.find(p => p._id.toString() !== req.user._id.toString());
-      return {
-        ...obj,
-        otherUser: other,
-        unreadCount: obj.unreadCount?.get?.(req.user._id.toString()) || 0,
-      };
+      return obj;
     });
 
-    res.json({ chats: enriched });
+    res.json(enriched);
   } catch (err) {
     next(err);
   }
@@ -148,7 +142,7 @@ export const sendMessage = async (req, res, next) => {
       req.io.to(`chat_${chatId}`).emit('new_message', populated);
     }
 
-    res.status(201).json({ message: populated });
+    res.status(201).json(populated);
   } catch (err) {
     next(err);
   }
@@ -178,13 +172,19 @@ export const deleteMessage = async (req, res, next) => {
     const { chatId, msgId } = req.params;
     const { forEveryone } = req.body;
 
+    // Verify user is participant in this chat
+    const chat = await Chat.findOne({
+      _id: chatId,
+      participants: req.user._id,
+    });
+
+    if (!chat) {
+      return res.status(404).json({ message: 'Chat not found' });
+    }
+
     const message = await Message.findOne({
       _id: msgId,
       chatId,
-      $or: [
-        { sender: req.user._id },
-        { 'chat.participants': req.user._id },
-      ],
     });
 
     if (!message) {
