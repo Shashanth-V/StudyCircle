@@ -1,84 +1,60 @@
 import { create } from 'zustand';
-import { matchApi, userApi } from '../lib/api';
-import { useAuthStore } from './authStore';
+import * as matchesApi from '../api/matches';
 
 export const useMatchStore = create((set, get) => ({
   suggestions: [],
   matches: [],
-  requests: {
-    sent: [],
-    received: [],
-  },
+  incomingRequests: [],
+  outgoingRequests: [],
   isLoading: false,
 
-  fetchSuggestions: async () => {
+  fetchSuggestions: async (params) => {
     set({ isLoading: true });
     try {
-      const res = await userApi.getSuggestions();
-      set({ suggestions: res.data, isLoading: false });
-    } catch {
+      const res = await matchesApi.getSuggestions(params);
+      set({ suggestions: res.data.data });
+    } finally {
       set({ isLoading: false });
     }
   },
 
   fetchMatches: async () => {
-    set({ isLoading: true });
-    try {
-      const userId = useAuthStore.getState().user?._id;
-      const [acceptedRes, pendingRes] = await Promise.all([
-        matchApi.getMatches('accepted'),
-        matchApi.getMatches('pending'),
-      ]);
-      set({
-        matches: acceptedRes.data,
-        requests: {
-          sent: pendingRes.data.filter((m) => m.requester._id === userId),
-          received: pendingRes.data.filter((m) => m.receiver._id === userId),
-        },
-        isLoading: false,
-      });
-    } catch {
-      set({ isLoading: false });
-    }
+    const res = await matchesApi.getMatches();
+    set({ matches: res.data });
   },
 
-  sendRequest: async (userId) => {
-    await matchApi.sendRequest(userId);
-    set((state) => ({
-      suggestions: state.suggestions.filter((s) => s._id !== userId),
-    }));
-  },
-
-  acceptRequest: async (matchId) => {
-    await matchApi.acceptRequest(matchId);
-    set((state) => {
-      const req = state.requests.received.find((r) => r._id === matchId);
-      return {
-        requests: {
-          ...state.requests,
-          received: state.requests.received.filter((r) => r._id !== matchId),
-        },
-        matches: req ? [...state.matches, { ...req, status: 'accepted' }] : state.matches,
-      };
+  fetchRequests: async () => {
+    const [incomingRes, outgoingRes] = await Promise.all([
+      matchesApi.getIncomingRequests(),
+      matchesApi.getOutgoingRequests()
+    ]);
+    set({ 
+      incomingRequests: incomingRes.data,
+      outgoingRequests: outgoingRes.data 
     });
   },
 
-  declineRequest: async (matchId) => {
-    await matchApi.declineRequest(matchId);
-    set((state) => ({
-      requests: {
-        ...state.requests,
-        received: state.requests.received.filter((r) => r._id !== matchId),
-        sent: state.requests.sent.filter((r) => r._id !== matchId),
-      },
+  sendRequest: async (userId) => {
+    await matchesApi.sendRequest(userId);
+    // Remove from suggestions
+    set(state => ({
+      suggestions: state.suggestions.filter(s => s.user._id !== userId)
     }));
+    await get().fetchRequests();
   },
 
-  blockMatch: async (matchId, reason) => {
-    await matchApi.blockMatch(matchId, reason);
-    set((state) => ({
-      matches: state.matches.filter((m) => m._id !== matchId),
+  acceptRequest: async (id) => {
+    await matchesApi.acceptRequest(id);
+    set(state => ({
+      incomingRequests: state.incomingRequests.filter(r => r._id !== id)
     }));
+    await get().fetchMatches();
   },
+
+  declineRequest: async (id) => {
+    await matchesApi.declineRequest(id);
+    set(state => ({
+      incomingRequests: state.incomingRequests.filter(r => r._id !== id)
+    }));
+  }
 }));
-

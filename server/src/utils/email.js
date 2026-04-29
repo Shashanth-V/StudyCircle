@@ -17,6 +17,12 @@ const transporter = nodemailer.createTransport({
  * @param {string} name
  */
 export const sendVerificationEmail = async (to, otp, name) => {
+  if (process.env.SMTP_USER === 'your_smtp_user') {
+    console.log(`\n======================================================`);
+    console.log(`[EMAIL BYPASS] Verification code for ${to} is: ${otp}`);
+    console.log(`======================================================\n`);
+    return;
+  }
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || 'StudyCircle <noreply@studycircle.app>',
     to,
@@ -42,6 +48,12 @@ export const sendVerificationEmail = async (to, otp, name) => {
  * @param {string} name
  */
 export const sendPasswordResetEmail = async (to, resetUrl, name) => {
+  if (process.env.SMTP_USER === 'your_smtp_user') {
+    console.log(`\n======================================================`);
+    console.log(`[EMAIL BYPASS] Password reset link for ${to} is: ${resetUrl}`);
+    console.log(`======================================================\n`);
+    return;
+  }
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || 'StudyCircle <noreply@studycircle.app>',
     to,

@@ -18,14 +18,16 @@ export default function Explore() {
     if (activeTab === 'users' && query) {
       setIsLoading(true);
       userApi.searchUsers(query).then((res) => {
-        setUsers(res.data);
+        const data = Array.isArray(res.data) ? res.data : res.data?.users || res.data?.data || [];
+        setUsers(data);
         setIsLoading(false);
       }).catch(() => setIsLoading(false));
     }
     if (activeTab === 'sessions') {
       setIsLoading(true);
       sessionApi.getSessions({ public: true, status: 'upcoming' }).then((res) => {
-        setSessions(res.data);
+        const data = Array.isArray(res.data) ? res.data : res.data?.sessions || res.data?.data || [];
+        setSessions(data);
         setIsLoading(false);
       }).catch(() => setIsLoading(false));
     }

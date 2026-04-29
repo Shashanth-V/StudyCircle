@@ -49,6 +49,14 @@ export const getChats = async (req, res, next) => {
 
     const enriched = chats.map(chat => {
       const obj = chat.toObject();
+      if (chat.unreadCount && chat.unreadCount instanceof Map) {
+        obj.unreadCount = Object.fromEntries(chat.unreadCount);
+      } else if (chat.unreadCount) {
+        // Handle cases where Mongoose might have already converted it
+        obj.unreadCount = Object.fromEntries(
+          chat.unreadCount.entries ? chat.unreadCount.entries() : Object.entries(chat.unreadCount)
+        );
+      }
       return obj;
     });
 

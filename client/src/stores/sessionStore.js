@@ -1,63 +1,36 @@
 import { create } from 'zustand';
-import { sessionApi } from '../lib/api';
+import * as sessionsApi from '../api/sessions';
 
 export const useSessionStore = create((set, get) => ({
   sessions: [],
   activeSession: null,
   isLoading: false,
 
-  fetchSessions: async (params = {}) => {
+  fetchSessions: async (params) => {
     set({ isLoading: true });
     try {
-      const res = await sessionApi.getSessions(params);
-      set({ sessions: res.data, isLoading: false });
-    } catch {
+      const res = await sessionsApi.getSessions(params);
+      set({ sessions: res.data });
+    } finally {
       set({ isLoading: false });
-    }
-  },
-
-  getSession: async (id) => {
-    set({ isLoading: true });
-    try {
-      const res = await sessionApi.getSession(id);
-      set({ activeSession: res.data, isLoading: false });
-      return res.data;
-    } catch {
-      set({ isLoading: false });
-      return null;
     }
   },
 
   createSession: async (data) => {
-    const res = await sessionApi.createSession(data);
-    set((state) => ({
-      sessions: [res.data, ...state.sessions],
-    }));
-    return res.data;
+    const res = await sessionsApi.createSession(data);
+    set(state => ({ sessions: [...state.sessions, res.data] }));
+    return res;
   },
 
   joinSession: async (id) => {
-    const res = await sessionApi.joinSession(id);
-    set((state) => ({
-      sessions: state.sessions.map((s) => (s._id === id ? res.data : s)),
-      activeSession: state.activeSession?._id === id ? res.data : state.activeSession,
-    }));
-    return res.data;
+    const res = await sessionsApi.joinSession(id);
+    return res;
   },
 
   leaveSession: async (id) => {
-    const res = await sessionApi.leaveSession(id);
-    set((state) => ({
-      sessions: state.sessions.map((s) => (s._id === id ? res.data : s)),
-      activeSession: state.activeSession?._id === id ? res.data : state.activeSession,
-    }));
-    return res.data;
+    const res = await sessionsApi.leaveSession(id);
+    return res;
   },
-
-  updateActiveSession: (updates) => {
-    set((state) => ({
-      activeSession: state.activeSession ? { ...state.activeSession, ...updates } : null,
-    }));
-  },
+  
+  setActiveSession: (session) => set({ activeSession: session })
 }));
-

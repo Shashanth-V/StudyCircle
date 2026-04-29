@@ -15,6 +15,7 @@ export default function Dashboard() {
   const fetchChats = useChatStore((state) => state.fetchChats);
   const sessions = useSessionStore((state) => state.sessions);
   const fetchSessions = useSessionStore((state) => state.fetchSessions);
+  const matches = useMatchStore((state) => state.matches);
 
   useEffect(() => {
     fetchSuggestions();
@@ -76,7 +77,7 @@ export default function Dashboard() {
         <StatCard
           icon={<Users className="w-5 h-5 text-purple-500" />}
           label="Active Matches"
-          value={useMatchStore.getState().matches?.length || 0}
+          value={matches?.length || 0}
         />
         <StatCard
           icon={<MessageSquare className="w-5 h-5 text-pink-500" />}
